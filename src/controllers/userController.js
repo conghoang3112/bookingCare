@@ -19,6 +19,25 @@ let handlelogin = async (req, res) => {
     });
 }
 
+let handleGetAllUser = async (req, res) => {
+    let id = req.body.id;//all, id
+    if (!id) {
+        return res.status(200).json({
+            errCode: 0,
+            errMessage: 'Missing required param',
+            users: []
+        })
+    }
+    let users = await userService.getAllUser(id);
+    console.log(users);
+    return res.status(200).json({
+        errCode: 0,
+        errMessage: 'ok',
+        users
+    })
+}
+
 module.exports = {
     handlelogin: handlelogin,
+    handleGetAllUser: handleGetAllUser,
 }
