@@ -1,6 +1,21 @@
 import db from "../models/index";
 import bcrypt from 'bcryptjs';
 
+const salt = bcrypt.genSaltSync(10);
+
+let hashUserPassword = (password) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let hashPassword = await bcrypt.hashSync(password, salt);
+            resolve(hashPassword);
+
+        } catch (e) {
+            reject(e);
+        }
+
+    })
+}
+
 let handleUserlogin = (email, password) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -82,7 +97,101 @@ let getAllUser = (userId) => {
     })
 }
 
+let createNewUser = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            //check email is exist
+            let check = await checkUserEmail(data.email);
+            if (check === true) {
+                resolve({
+                    errCode: 1,
+                    message: 'Email is already in use'
+                })
+            }
+            let hashPasswordFromBcrypt = await hashUserPassword(data.password);
+            await db.User.create({
+                email: data.email,
+                password: hashPasswordFromBcrypt,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                address: data.address,
+                phoneNumber: data.phonenumber,
+                gender: data.gender === "1" ? true : false,
+                roleId: data.roleId,
+            })
+            resolve({
+                errCode: 0,
+                message: 'OK',
+            });
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+let deleteUser = (UserId) => {
+    return new Promise(async (resolve, reject) => {
+        let user = await db.User.findOne({
+            where: { id: UserId },
+        })
+        if (!user) {
+            resolve({
+                errCode: 2,
+                errMessage: 'The user is not exist',
+            })
+        }
+        //user.destroy() chỉ hiểu khi sd instance của sequelize vì config.json dử dụng "query": {"raw": true} nên ko dùng đc await user.destroy();
+        // await user.destroy();
+        await db.User.destroy({
+            where: { id: UserId }
+        })
+        resolve({
+            errCode: 0,
+            message: 'The user is deleted',
+        });
+    })
+}
+
+let editUserData = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id) {
+                resolve({
+                    errCode: 2,
+                    errMessage: 'Missing require parameter'
+                })
+            }
+            let user = await db.User.findOne({
+                where: { id: data.id },
+                raw: false
+            })
+            if (user) {
+                user.firstName = data.firstName;
+                user.lastName = data.lastName;
+                user.address = data.address;
+
+                await user.save();
+                resolve({
+                    errCode: 0,
+                    message: 'Update user success'
+                });
+            } else {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'User not found'
+                });
+            }
+        } catch (error) {
+            reject(error);
+        }
+    })
+
+}
+
 module.exports = {
     handleUserlogin: handleUserlogin,
     getAllUser: getAllUser,
+    createNewUser: createNewUser,
+    deleteUser: deleteUser,
+    editUserData: editUserData,
 }

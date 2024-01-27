@@ -18,6 +18,8 @@ let initWebRoute = (app) => {
 
     route.post('/api/login', userController.handlelogin);
     route.get('/api/get-all-users', userController.handleGetAllUser);
+    route.put('/api/edit-user', userController.handleEditNewUser);
+    route.delete('/api/delete-user', userController.handleDeleteNewUser);
 
 
     return app.use("/", route);
