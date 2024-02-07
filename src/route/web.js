@@ -14,14 +14,12 @@ let initWebRoute = (app) => {
     route.post('/put-crud', homeController.putCRUD);
     route.get('/delete-crud', homeController.deleteCRUD);
 
-
-
     route.post('/api/login', userController.handlelogin);
     route.get('/api/get-all-users', userController.handleGetAllUser);
     route.post('/api/create-new-user', userController.handleCreateNewUser);
     route.put('/api/edit-user', userController.handleEditNewUser);
     route.delete('/api/delete-user', userController.handleDeleteNewUser);
-
+    route.get('/allCode', userController.getAllCode);
 
     return app.use("/", route);
 }
